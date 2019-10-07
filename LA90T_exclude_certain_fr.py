@@ -75,6 +75,10 @@ def calc_Laeq_dt(filename):
     print(surveyDF2.head())
     return surveyDF2
 
+def calc_LAeqT_from_spec(dataTframeInput, columnName="LAeq_dt"):
+    return np.log10(np.mean(10.**(dataTframeInput[columnName]/10)))
+
+    
 def calc_Lx_T(sDF, duration = 900, resolution=1):
     ''' sDF: survey dataframe
         duration is the equivalent measurement time length T in seconds,
@@ -115,6 +119,7 @@ def calc_Lx_T(sDF, duration = 900, resolution=1):
     # slice the data
     dateT = []
     LA90T = []
+    LAeqT = []
     for s in range(steps):
         st = startTime + datetime.timedelta(seconds=duration*s)
         et = startTime + datetime.timedelta(seconds=duration*(s+1))
@@ -122,13 +127,14 @@ def calc_Lx_T(sDF, duration = 900, resolution=1):
         print (tempDF.head())
         tempDF2 = tempDF.sort_values("LAeq_dt")
         print (tempDF2.head())
-        LA90T.append(tempDF2["LAeq_dt"].iloc[int(0.1*duration/resolution)])
+        LA90T.append(tempDF2["LAeq_dt"].iloc[int(0.1*duration/resolution)]) # find LA90
+        LAeqT.append(10*np.log10(np.mean(10.**(tempDF["LAeq_dt"]/10)))) # calc the LAeq,T
         dateT.append(st)
-    LA90DF = pd.DataFrame.from_dict({"Time":dateT, "LA90T":LA90T})
+    LA90DF = pd.DataFrame.from_dict({"Time":dateT, "LAeqT":LAeqT, "LA90T":LA90T})
     print(LA90DF.head())
     
     # write to CSV
-    LA90DF.to_csv("LA90T.csv")
+    LA90DF.to_csv("LAeqT-LA90T.csv")
     
 
 def main():
